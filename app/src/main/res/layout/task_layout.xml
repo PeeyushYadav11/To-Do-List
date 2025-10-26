@@ -8,8 +8,8 @@
     app:cardElevation="4dp"
     app:cardCornerRadius="8dp"
     android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp">
-    
+    android:layout_marginVertical="10dp">
+
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,8 +22,26 @@
             tool:text="This is an sample Task inside the application."
             android:paddingStart="8dp"
             android:buttonTint="@android:color/holo_green_dark"
+            android:textSize="16sp"
+            android:textStyle="bold"
             />
+
+        <TextView
+            android:id="@+id/taskDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/todoCheckBox"
+            android:layout_marginStart="12dp"
+            android:textSize="12sp"
+            tool:text="2024-05-21"/>
+        <TextView
+            android:id="@+id/taskDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/taskDate"
+            android:layout_marginStart="12dp"
+            android:textSize="12sp"
+            tool:text="This is a sample description"/>
     </RelativeLayout>
 
 </androidx.cardview.widget.CardView>
-    

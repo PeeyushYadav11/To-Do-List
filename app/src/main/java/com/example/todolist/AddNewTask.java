@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 
 import androidx.core.content.ContextCompat;
@@ -20,10 +21,13 @@ import com.example.todolist.Model.ToDoModel;
 import com.example.todolist.Utils.DatabaseHandler;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import java.util.Calendar;
+
 public class AddNewTask extends BottomSheetDialogFragment {
     public static final String TAG = "ActionBottomDialog";
-    private EditText newTaskText;
+    private EditText newTaskText, newTaskDescription;
     private Button newTaskSaveButton;
+    private DatePicker datePicker;
     private DatabaseHandler db;
 
     public static AddNewTask newInstance(){
@@ -42,15 +46,15 @@ public class AddNewTask extends BottomSheetDialogFragment {
         View view = inflater.inflate(R.layout.new_task, container, false);
         getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         return view;
-
-
-
     }
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         newTaskText = getView().findViewById(R.id.newTaskText);
+        newTaskDescription = getView().findViewById(R.id.newTaskDescription);
         newTaskSaveButton = getView().findViewById(R.id.newTaskButton);
+        datePicker = getView().findViewById(R.id.datePicker);
 
         db = new DatabaseHandler(getActivity());
         db.openDatabase();
@@ -61,20 +65,30 @@ public class AddNewTask extends BottomSheetDialogFragment {
             isUpdate = true;
             String task = bundle.getString("task");
             newTaskText.setText(task);
+
+            String description = bundle.getString("description");
+            newTaskDescription.setText(description);
+
+            String date = bundle.getString("date");
+            if (date != null) {
+                String[] dateParts = date.split("-");
+                int year = Integer.parseInt(dateParts[0]);
+                int month = Integer.parseInt(dateParts[1]) - 1; // Month is 0-based
+                int day = Integer.parseInt(dateParts[2]);
+                datePicker.updateDate(year, month, day);
+            }
+
             if (task.length() > 0)
                 newTaskSaveButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
-
         }
 
         newTaskText.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
-
             }
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
@@ -86,40 +100,41 @@ public class AddNewTask extends BottomSheetDialogFragment {
                 else {
                     newTaskSaveButton.setEnabled(true);
                     newTaskSaveButton.setTextColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
-
-
                 }
             }
-
-
         });
-        final boolean finalIsUpdate = isUpdate;
 
+        final boolean finalIsUpdate = isUpdate;
         newTaskSaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String text = newTaskText.getText().toString();
+                String description = newTaskDescription.getText().toString();
+
+                int day = datePicker.getDayOfMonth();
+                int month = datePicker.getMonth();
+                int year = datePicker.getYear();
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(year, month, day);
+
+                // Format the date as a string (e.g., "2024-05-21")
+                String date = year + "-" + (month + 1) + "-" + day;
 
                 if(finalIsUpdate) {
-                    db.updateTask(bundle.getInt("id"), text);
+                    db.updateTask(bundle.getInt("id"), text, date, description);
                 }
                 else {
                     ToDoModel task = new ToDoModel();
                     task.setTask(text);
                     task.setStatus(0);
+                    task.setDate(date);
+                    task.setDescription(description);
                     db.insertTask(task);
                 }
                 dismiss();
-
-
             }
         });
-
-
-
-
     }
-
 
     @Override
     public void onDismiss(DialogInterface dialog) {
@@ -127,14 +142,5 @@ public class AddNewTask extends BottomSheetDialogFragment {
         if(activity instanceof DialogCloseListener){
             ((DialogCloseListener)activity).handleDialogClose(dialog);
         }
-
     }
-
-
-
-
-
-
-
-
 }

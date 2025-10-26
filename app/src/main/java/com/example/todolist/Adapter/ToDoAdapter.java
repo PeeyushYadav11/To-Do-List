@@ -1,12 +1,14 @@
 package com.example.todolist.Adapter;
 
 import android.content.Context;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -35,17 +37,29 @@ public class ToDoAdapter extends RecyclerView.Adapter<ToDoAdapter.ViewHolder> {
     }
 
     public void onBindViewHolder(ViewHolder holder,int position){
-        ToDoModel item = todoList.get(position);
+        db.openDatabase();
+        final ToDoModel item = todoList.get(position);
         holder.task.setText(item.getTask());
         holder.task.setChecked(toBoolean(item.getStatus()));
+        holder.taskDate.setText(item.getDate());
+        holder.taskDescription.setText(item.getDescription());
+
+        if(toBoolean(item.getStatus())){
+            holder.task.setPaintFlags(holder.task.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+        }
+        else{
+            holder.task.setPaintFlags(holder.task.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+        }
         holder.task.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){
                 if(isChecked){
                     db.updateStatus(item.getId(),1);
+                    buttonView.setPaintFlags(buttonView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                 }
                 else{
                     db.updateStatus(item.getId(),0);
+                    buttonView.setPaintFlags(buttonView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
                 }
             }
 
@@ -82,6 +96,8 @@ public class ToDoAdapter extends RecyclerView.Adapter<ToDoAdapter.ViewHolder> {
         Bundle bundle = new Bundle();
         bundle.putInt("id",item.getId());
         bundle.putString("task",item.getTask());
+        bundle.putString("date",item.getDate());
+        bundle.putString("description",item.getDescription());
         AddNewTask fragment = new AddNewTask();
         fragment.setArguments(bundle);
         fragment.show(activity.getSupportFragmentManager(),AddNewTask.TAG);
@@ -92,10 +108,14 @@ public class ToDoAdapter extends RecyclerView.Adapter<ToDoAdapter.ViewHolder> {
 
     public static class ViewHolder extends  RecyclerView.ViewHolder{
         CheckBox task;
+        TextView taskDate;
+        TextView taskDescription;
 
         ViewHolder(View View){
             super(View);
             task = View.findViewById(R.id.todoCheckBox);
+            taskDate = View.findViewById(R.id.taskDate);
+            taskDescription = View.findViewById(R.id.taskDescription);
         }
     }
 }
